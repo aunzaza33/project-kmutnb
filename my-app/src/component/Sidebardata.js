@@ -34,12 +34,14 @@ function Sidebardata() {
     return (
       <BrowserRouter>
         <div class="sidenav">
+        <a class="navbar-brand" ><NavLink to="/"></NavLink></a>
           <a class="navbar-brand" ><NavLink to={`/repair/${repairType}`}>แจ้งซ่อม</NavLink></a>
           <a class="navbar-brand" ><NavLink to="/room">แจ้งย้าย</NavLink></a>
           <a class="navbar-brand" ><NavLink to="/reportrepair">แจ้ง</NavLink></a>
         </div>
         <div class="content">
           <Routes>
+            <Route path='/' element={<Room />}></Route>
             <Route path='/repair/:type' element={<Repair />}></Route>
             <Route path='/room' element={<Room />}></Route>
             <Route path='/reportrepair' element={<Reportrepair />}></Route>
