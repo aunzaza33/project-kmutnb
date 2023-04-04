@@ -2,8 +2,7 @@ const express = require("express");
 const app = express();
 const mysql = require("mysql");
 const cors = require("cors");
-const multer = require('multer');
-
+const bodyParser = require('body-parser');
 
 
 const scopes = 'personel,student,templecturer'; // <----- Scopes for search account type
@@ -255,39 +254,27 @@ app.put('/changeroom/:durablearticles_Id', (req, res) => {
 });
 
 //repair
-
-const storage = multer.diskStorage({
-  destination: './public/uploads',
-  filename: (req, file, callback) => {
-    callback(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
-  },
+db.connect((err) => {
+  if (err) throw err;
+  console.log('Connected to MySQL database!');
 });
 
-const upload = multer({
-  storage: storage,
-});
+app.post('/repairs', (req, res) => {
+  const localTime = new Date().toLocaleString('en-US', { timeZone: 'Asia/Bangkok' });
+  const { durablearticles_Id, room, repair_detail, Informer } = req.body;
 
-// Handle repair request submission
-app.post('/repair/:durablearticles_Id', upload.single('repair_img'), (req, res) => {
-  const durablearticles_Id = req.params.durablearticles_Id;
-  const repair_img = req.file.filename;
-  const notifier = req.body.notifier;
-  const description = req.body.description;
-  const room = req.body.room;
-
-  const query = 'INSERT INTO repairs (durablearticles_Id, repair_img, notifier, description, room) VALUES (?, ?, ?, ?, ?)';
-  const values = [durablearticles_Id, repair_img, notifier, description, room];
-
-  connection.query(query, values, (error, results) => {
-    if (error) {
-      console.error('Error saving repair request:', error);
-      res.status(500).json({ error: 'Error saving repair request.' });
-    } else {
-      console.log('Repair request saved successfully!');
-      res.status(200).json({ message: 'Repair request saved successfully.' });
-    }
+  const repair_status = "รอดำเนินการ";
+  const repair_durablearticles_date = localTime;
+  const sql = "INSERT INTO repair_durablearticles (durablearticles_Id, room, repair_detail, Informer, repair_status, repair_durablearticles_date) VALUES (?, ?, ?, ?, ?, ?)";
+  const values = [durablearticles_Id, room, repair_detail, Informer, repair_status, repair_durablearticles_date];
+  db.query(sql, values, (err, result) => {
+    if (err) throw err;
+    console.log("New repair record inserted!");
+    res.sendStatus(200);
   });
 });
+
+
 
 
 app.post('/login', (req, res) => {
@@ -332,4 +319,3 @@ app.post('/login', (req, res) => {
 app.listen(3001, () => {
   console.log("Yey, your server is running on port 3001");
 });
-

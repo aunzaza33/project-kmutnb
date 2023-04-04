@@ -1,100 +1,92 @@
-import React, { useState, useEffect, useRef } from 'react';
-import Webcam from 'react-webcam';
+import React,{ useState, useEffect, useRef } from "react";
 import axios from 'axios';
 
-export default function Repair() {
-  const storageRepairType = sessionStorage.getItem('repairType');
-  const durablearticles_Id=storageRepairType
-
+export default function Repair(){
   const [material, setMaterial] = useState([]);
-  const [notifier, setNotifier] = useState('');
+  const storageRepairType = sessionStorage.getItem('repairType');
+  const durablearticles_Id = storageRepairType;
+  const [room, setRoom] = useState('');
   const [description, setDescription] = useState('');
-
+  const [Informer, setInformer] = useState('');
+  const [du_name, setDurablearticlesName] = useState('');
+  const [typeId, setTypeDurablearticlesId] = useState('');
+  const repair_durablearticles_Id=" ";
   useEffect(() => {
-    getMaterial();
-  }, []);
-
-  const getMaterial = async () => {
-    try {
+    const getMaterial = async () => {
       const response = await axios.get('http://localhost:3001/durablearticles');
-      setMaterial(response.data);
+      const jsonData = response.data;
+      setMaterial(jsonData);
+      const foundData = jsonData.find(data => data.durablearticles_Id === durablearticles_Id);
+      if (foundData) {
+        setDurablearticlesName(foundData.durablearticles_name);
+        setTypeDurablearticlesId(foundData.type_durablearticles_Id);
+      }
+    };
+    getMaterial();
+  }, [durablearticles_Id]);
+  
+  const submitRepair = async () => {
+    if (!Informer) {
+      alert('Please fill in the informer field.');
+      return;
+    }
+
+    const data = {
+      repair_durablearticles_Id,
+      du_name,
+      durablearticles_Id,
+      room,
+      description,
+      Informer,
+      repair_detail: description, 
+      Informer: Informer, 
+    }
+    console.log(description)
+    try {
+      const response = await axios.post('http://localhost:3001/repairs', data);
+      console.log(response.data);
     } catch (error) {
       console.error(error);
     }
-  };
+  }
+  
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    submitRepair();
+  }
+  
+  const handleInputChange =(event) => {
+    event.preventDefault();
+    const { name, value } = event.target;
+    if (name === 'room') {
+      setRoom(value);
+    } else if (name === 'description') {
+      setDescription(value);
+    } else if (name === 'Informer') {
+      setInformer(value);
+    }
+  }
 
-  const WebcamCapture = () => {
-    const [image, setImage] = useState(null);
-    const webcamRef = useRef(null);
-
-    const capture = () => {
-      const imageSrc = webcamRef.current.getScreenshot();
-      setImage(imageSrc);
-      webcamRef.current.stream.getTracks().forEach((track) => track.stop());
-    };
-
-    const handleSubmit = (event) => {
-      event.preventDefault();
-      // Submit form data
-      const formData = new FormData();
-      formData.append('durablearticles_Id', durablearticles_Id);
-      formData.append('repair_img', image);
-      formData.append('notifier', notifier);
-      formData.append('description', description);
-      axios.post(`http://localhost:3001/repair/${durablearticles_Id}`, formData)
-        .then((response) => {
-          console.log(response);
-          alert('Submit success!');
-        })
-        .catch((error) => {
-          console.error(error);
-          alert('Submit failed!');
-        });
-    };
-
-    return (
-      <div>
-        <h2>แจ้งซ่อมครุภัณฑ์</h2>
-        <form onSubmit={handleSubmit}>
-          {material.map((val, index) => (
-            val.durablearticles_Id === storageRepairType && (
-              <div key={index}>
-                <label>ID: {val.durablearticles_Id}</label><br />
-                <label>ชื่อ: {val.durablearticles_name}</label><br />
-                <label>ประเภท: {val.type_durablearticles_Id}</label><br />
-                <label>ห้อง:</label>
-                <select name="room">
-                  <option value={val.room_Id}>{val.room_Id}</option>
-                  <option value="78-601">78-601</option>
-                </select>
-              </div>
-            )
-          ))}
-
-          <br />
-          <label>รูปภาพ:</label>
-          {image ? (
-            <img src={image} alt="capture" />
-          ) : (
-            <>
-              <Webcam audio={false} ref={webcamRef} screenshotFormat="image/jpeg" width={210} height={120} />
-              <button onClick={capture}>ถ่ายรูป</button>
-            </>
-          )}
-          <br />
+  return(
+    <div>
+      <h2>แจ้งซ่อมครุภัณฑ์</h2>
+      <form onSubmit={handleSubmit}>
+          <label>ID:{durablearticles_Id}  </label><br /><br />
+          <label>ชื่อ:{du_name} </label><br /><br />
+          <label>ประเภท:{typeId} </label><br /><br />
+          <label>ห้อง:</label>
+          <select name="room" value={room} onChange={handleInputChange}>
+            <option value="select">select</option>
+            <option value="78-601">78-601</option>
+          </select><br /><br />
           <label>รายละเอียดเพิ่มเติม:</label>
-          <input type="text" name="description" value={description} onChange={(event) => setDescription(event.target.value)} />
-          <br />
+          <input type="text" onChange={handleInputChange} value={description} name="description" />
+          <br /><br />
           <label>ผู้แจ้ง:</label>
-          <input type="text" name="notifier" value={notifier} onChange={(event) => setNotifier(event.target.value)} /><br />
-          <br />
-          <button type="submit" className="submit">Submit</button>
-        </form>
-      </div>
-    );
-  };
-
-  return <WebcamCapture />;
-
-
+          <input type="text" onChange={handleInputChange} value={Informer} name="Informer" /><br />
+          <br /><br />
+          <button type="submit" className="submit" onClick={handleSubmit}>Submit</button>
+      </form>
+    </div>
+  )
 }
