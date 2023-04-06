@@ -105,7 +105,7 @@ export default function Repair(){
           <input type="text" onChange={handleInputChange} value={Informer} name="Informer" /><br />
           <br /><br />
           <button type="button" className="take-picture" onClick={handleTakePicture}>Take Picture</button>
-<video ref={videoRef} autoPlay muted style={{ display: "none" }}></video>
+<video ref={videoRef} autoPlay muted style={{ display: "" }}></video>
 {pictureUrl ? (
   <img
     src={pictureUrl}
@@ -115,7 +115,7 @@ export default function Repair(){
 ) : (
   <p>No picture taken</p>
 )}
-
+)}
 <button type="submit" className="submit" onClick={handleSubmit}>Submit</button>
 
       </form>
