@@ -69,7 +69,7 @@ export default function Repair(){
     }
   }
   const handleTakePicture = async () => {
-    const constraints = { audio: false, video: { facingMode: { exact: "environment" } } }; // เพิ่ม constraints เพื่อให้ใช้กล้องหลัง
+    const constraints = { audio: false, video: { facingMode: { exact: "environment" } } }; // ใช้กล้องหลังด้าน
     const stream = await navigator.mediaDevices.getUserMedia(constraints);
     videoRef.current.srcObject = stream;
   
@@ -79,8 +79,13 @@ export default function Repair(){
     canvas.getContext('2d').drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
     const dataURL = canvas.toDataURL('image/png');
     setPictureUrl(dataURL);
-    stream.getTracks().forEach(track => track.stop()); // เพิ่มการปิดกล้องหลังเมื่อถ่ายรูปเสร็จสิ้น
-  };
+    
+    stream.getTracks().forEach(track => {
+      track.stop(); // หยุดการใช้งานกล้องเมื่อเสร็จสิ้น
+    });
+  }
+  
+  
 
   return(
     <div>
@@ -101,14 +106,9 @@ export default function Repair(){
           <input type="text" onChange={handleInputChange} value={Informer} name="Informer" /><br />
           <br /><br />
           <button type="button" className="take-picture" onClick={handleTakePicture}>Take Picture</button>
-<video ref={videoRef} autoPlay muted style={{ display: "" }}></video>
-{pictureUrl && (
-  <img
-    src={pictureUrl}
-    alt="Taken Picture"
-    style={{ maxWidth: "100%", marginTop: "10px" }}
-  />
-)}
+          <video ref={videoRef} ></video>
+{pictureUrl && <img src={pictureUrl} alt="Taken Picture" />}
+
 <button type="submit" className="submit" onClick={handleSubmit}>Submit</button>
 
       </form>
