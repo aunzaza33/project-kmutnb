@@ -30,12 +30,6 @@ export default function Repair(){
   }, [durablearticles_Id]);
 
   const webcamRef = useRef(null);
-
-const capture = React.useCallback(() => {
-const imageSrc = webcamRef.current.getScreenshot();
-setImage(imageSrc);
-}, [webcamRef, setImage]);
-  
 // ฟังก์ชันสำหรับสลับกล้อง
 const toggleFacingMode = () => {
   setFacingMode(prevFacingMode => {
@@ -46,12 +40,15 @@ const toggleFacingMode = () => {
     }
   });
 }
+const capture = React.useCallback(() => {
+const imageSrc = webcamRef.current.getScreenshot();
+setImage(imageSrc);
+}, [webcamRef, setImage]);
+  
+
 
   const submitRepair = async () => {
-    if (!Informer) {
-      alert('Please fill in the informer field.');
-      return;
-    }
+  
 
     const data = {
       repair_durablearticles_Id,
@@ -107,7 +104,7 @@ const toggleFacingMode = () => {
              ) : (
           <>
             <Webcam audio={false} ref={webcamRef} screenshotFormat="image/jpeg" width={210} height={120} facingMode={facingMode} />
-        <button onClick={capture}>ถ่ายรูป</button>
+        <button onClick={toggleFacingMode}>ถ่ายรูป</button>
         <button onClick={toggleFacingMode}>สลับกล้อง</button>
           </>
           )}
