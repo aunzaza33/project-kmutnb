@@ -11,13 +11,42 @@ export default function Repair(){
   const [du_name, setDurablearticlesName] = useState('');
   const [typeId, setTypeDurablearticlesId] = useState('');
   const repair_durablearticles_Id=" ";
-  const [image, setImage] = useState(null);
+  const [stream, setStream] = useState(null);
+  const videoRef = useRef(null);
 
-  const handleChange = e => {
-    setImage(e.target.files[0]);
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { exact: 'environment' } },
+        audio: false,
+      });
+      setStream(stream);
+      videoRef.current.srcObject = stream;
+    } catch (err) {
+      console.error('Failed to access camera', err);
+    }
   };
 
+  const stopCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+      videoRef.current.srcObject = null;
+    }
+  };
 
+  const takePhoto = () => {
+    const canvas = document.createElement('canvas');
+    const video = videoRef.current;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    const photo = canvas.toDataURL('image/png');
+    const img = document.createElement('img');
+    img.src = photo;
+    document.body.appendChild(img); // แสดง element img บนหน้าเว็บ
+  };
+  
   useEffect(() => {
     const getMaterial = async () => {
       const response = await axios.get('http://localhost:3001/durablearticles');
@@ -31,6 +60,8 @@ export default function Repair(){
     };
     getMaterial();
   }, [durablearticles_Id]);
+
+  
   
   const submitRepair = async () => {
     if (!Informer) {
@@ -47,7 +78,6 @@ export default function Repair(){
       Informer,
       repair_detail: description, 
       Informer: Informer, 
-      repair_img:image,
     }
     console.log(description)
     try {
@@ -60,7 +90,6 @@ export default function Repair(){
   
   const handleSubmit = (event) => {
     event.preventDefault();
-
     submitRepair();
   }
   
@@ -88,8 +117,17 @@ export default function Repair(){
             <option value="select">select</option>
             <option value="78-601">78-601</option>
           </select><br /><br />
-          <input type="file" onChange={handleChange} />
-        <br></br>
+          <div>
+  {stream ? (
+    <div>
+      <video ref={videoRef} autoPlay playsInline />
+      <button onClick={stopCamera}>Stop Camera</button>
+      <button onClick={takePhoto}>Take Photo</button>
+    </div>
+  ) : (
+    <button onClick={startCamera}>Start Camera</button>
+  )}
+</div>
           <label>รายละเอียดเพิ่มเติม:</label>
           <input type="text" onChange={handleInputChange} value={description} name="description" />
           <br /><br />
