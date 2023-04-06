@@ -11,6 +11,8 @@ export default function Repair(){
   const [du_name, setDurablearticlesName] = useState('');
   const [typeId, setTypeDurablearticlesId] = useState('');
   const repair_durablearticles_Id=" ";
+  const videoRef = useRef();
+  const [pictureUrl, setPictureUrl] = useState('');
   useEffect(() => {
     const getMaterial = async () => {
       const response = await axios.get('http://localhost:3001/durablearticles');
@@ -66,6 +68,23 @@ export default function Repair(){
       setInformer(value);
     }
   }
+  const handleTakePicture = async () => {
+    const constraints = { audio: false, video: true };
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      videoRef.current.srcObject = stream;
+      videoRef.current.play();
+      const canvas = document.createElement("canvas");
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+      const dataURL = canvas.toDataURL("image/png");
+      setPictureUrl(dataURL);
+    } catch (err) {
+      console.log("Error: " + err);
+    }
+  };
 
   return(
     <div>
@@ -79,15 +98,23 @@ export default function Repair(){
             <option value="select">select</option>
             <option value="78-601">78-601</option>
           </select><br /><br />
-          <input type="file" accept="image/*" capture="camera" />
-          <br></br>
           <label>รายละเอียดเพิ่มเติม:</label>
           <input type="text" onChange={handleInputChange} value={description} name="description" />
           <br /><br />
           <label>ผู้แจ้ง:</label>
           <input type="text" onChange={handleInputChange} value={Informer} name="Informer" /><br />
           <br /><br />
-          <button type="submit" className="submit" onClick={handleSubmit}>Submit</button>
+          <button type="button" className="take-picture" onClick={handleTakePicture}>Take Picture</button>
+<video ref={videoRef} autoPlay muted style={{ display: "none" }}></video>
+{pictureUrl && (
+  <img
+    src={pictureUrl}
+    alt="Taken Picture"
+    style={{ maxWidth: "100%", marginTop: "10px" }}
+  />
+)}
+<button type="submit" className="submit" onClick={handleSubmit}>Submit</button>
+
       </form>
     </div>
   )
