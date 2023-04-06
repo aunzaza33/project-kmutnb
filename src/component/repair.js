@@ -13,6 +13,8 @@ export default function Repair(){
   const [typeId, setTypeDurablearticlesId] = useState('');
   const [image, setImage] = useState(null);
   const repair_durablearticles_Id=" ";
+  const [facingMode, setFacingMode] = useState("environment");
+
   useEffect(() => {
     const getMaterial = async () => {
       const response = await axios.get('http://localhost:3001/durablearticles');
@@ -75,7 +77,16 @@ setImage(imageSrc);
       setInformer(value);
     }
   }
-
+// ฟังก์ชันสำหรับสลับกล้อง
+const toggleFacingMode = () => {
+  setFacingMode(prevFacingMode => {
+    if (prevFacingMode === "user") {
+      return "environment";
+    } else {
+      return "user";
+    }
+  });
+};
   return(
     <div>
       <h2>แจ้งซ่อมครุภัณฑ์</h2>
@@ -93,8 +104,9 @@ setImage(imageSrc);
           <img src={image} alt="capture" />
              ) : (
           <>
-          <Webcam audio={false}ref={webcamRef}screenshotFormat="image/jpeg"width={210} height={120} facingMode="user" />
-          <button onClick={capture}>ถ่ายรูป</button>
+            <Webcam audio={false} ref={webcamRef} screenshotFormat="image/jpeg" width={210} height={120} facingMode={facingMode} />
+        <button onClick={capture}>ถ่ายรูป</button>
+        <button onClick={toggleFacingMode}>สลับกล้อง</button>
           </>
           )}
         
