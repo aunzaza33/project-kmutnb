@@ -93,11 +93,11 @@ setImage(imageSrc);
           <img src={image} alt="capture" />
              ) : (
           <>
-          <Webcam audio={false} ref={webcamRef} screenshotFormat="image/jpeg" width={210} height={120} />
+          <Webcam audio={false}ref={webcamRef}screenshotFormat="image/jpeg"width={210} height={120} facingMode="environment" />
           <button onClick={capture}>ถ่ายรูป</button>
           </>
           )}
-          <br /><br />
+        
           <label>รายละเอียดเพิ่มเติม:</label>
           <input type="text" onChange={handleInputChange} value={description} name="description" />
           <br /><br />
