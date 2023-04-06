@@ -106,13 +106,16 @@ export default function Repair(){
           <br /><br />
           <button type="button" className="take-picture" onClick={handleTakePicture}>Take Picture</button>
 <video ref={videoRef} autoPlay muted style={{ display: "none" }}></video>
-{pictureUrl && (
+{pictureUrl ? (
   <img
     src={pictureUrl}
     alt="Taken Picture"
     style={{ maxWidth: "100%", marginTop: "10px" }}
   />
+) : (
+  <p>No picture taken</p>
 )}
+
 <button type="submit" className="submit" onClick={handleSubmit}>Submit</button>
 
       </form>
