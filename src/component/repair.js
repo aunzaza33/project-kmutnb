@@ -93,7 +93,7 @@ setImage(imageSrc);
           <img src={image} alt="capture" />
              ) : (
           <>
-          <Webcam audio={false}ref={webcamRef}screenshotFormat="image/jpeg"width={210} height={120} facingMode="environment" />
+          <Webcam audio={false}ref={webcamRef}screenshotFormat="image/jpeg"width={210} height={120} facingMode="user" />
           <button onClick={capture}>ถ่ายรูป</button>
           </>
           )}
