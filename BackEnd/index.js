@@ -1,321 +1,141 @@
-const express = require("express");
-const app = express();
-const mysql = require("mysql");
-const cors = require("cors");
-const bodyParser = require('body-parser');
+import React,{ useState, useEffect, useRef } from "react";
+import axios from 'axios';
 
+export default function Repair(){
+  const [material, setMaterial] = useState([]);
+  const storageRepairType = sessionStorage.getItem('repairType');
+  const durablearticles_Id = storageRepairType;
+  const [room, setRoom] = useState('');
+  const [description, setDescription] = useState('');
+  const [Informer, setInformer] = useState('');
+  const [du_name, setDurablearticlesName] = useState('');
+  const [typeId, setTypeDurablearticlesId] = useState('');
+  const repair_durablearticles_Id=" ";
+  const [stream, setStream] = useState(null);
+  const videoRef = useRef(null);
 
-const scopes = 'personel,student,templecturer'; // <----- Scopes for search account type
-const token='sfDdrmyUDe9mzuNA0APClmJDtI5rh-EF';
-
-
-app.use(cors());
-app.use(express.json());
-
-const db = mysql.createConnection({
-  user: "root",
-  host: "localhost",
-  password: "",
-  database: "project",
-});
-
-//material
-app.get("/material", (req, res) => {
-  db.query("SELECT * FROM material", (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { exact: 'environment' } },
+        audio: false,
+      });
+      setStream(stream);
+      videoRef.current.srcObject = stream;
+    } catch (err) {
+      console.error('Failed to access camera', err);
     }
-  });
-});
+  };
 
-app.post('/creatematerial', (req, res) => {
-  const material_Id = req.body.material_Id;
-  const material_name = req.body.material_name;
-  const material_brand = req.body.material_brand;
-  const material_unit = req.body.material_unit;
-  const material_price = req.body.material_price;
-  const material_remaining = req.body.material_remaining;
-  const material_order_date = req.body.material_order_date;
-  const material_delivery_date = req.body.material_delivery_date;
-  const type_material_Id = req.body.type_material_Id;
-  const company_Id = req.body.company_Id;
-  db.query(
-    "INSERT INTO material (material_Id, material_name, material_brand, material_unit, material_price, material_remaining, material_order_date, material_delivery_date, type_material_Id, company_Id) VALUES(?,?,?,?,?,?,?,?,?,?)",
-    [material_Id, material_name, material_brand, material_unit, material_price, material_remaining, material_order_date, material_delivery_date, type_material_Id, company_Id],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send("Values inserted");
-      }
-    });
-});
-
-app.put('/updatematerial/:material_Id', (req, res) => {
-  const material_Id = req.body.material_Id;
-  const material_name = req.body.material_name;
-  const material_brand = req.body.material_brand;
-  const material_unit = req.body.material_unit;
-  const material_price = req.body.material_price;
-  const material_remaining = req.body.material_remaining;
-  const material_order_date = req.body.material_order_date;
-  const material_delivery_date = req.body.material_delivery_date;
-  const type_material_Id = req.body.type_material_Id;
-  const company_Id = req.body.company_Id;
-  db.query(
-    "UPDATE material SET material_name = ?, material_brand = ?, material_unit = ?, material_price = ?, material_remaining = ?, material_order_date = ?, material_delivery_date = ?, type_material_Id = ?, company_Id = ? WHERE material_Id = ?",
-    [material_name, material_brand, material_unit, material_price, material_remaining, material_order_date, material_delivery_date, type_material_Id, company_Id, material_Id],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    });
-});
-
-app.delete("/deletematerial/:material_Id", (req, res) => {
-  const material_Id = req.params.material_Id;
-  db.query("DELETE FROM material WHERE material_Id = ?", material_Id, (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
+  const stopCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+      videoRef.current.srcObject = null;
     }
-  });
-});
+  };
 
-app.get("/getmaterial/:material_Id", (req, res) => {
-  const material_Id = req.params.material_Id;
-  db.query("SELECT * FROM material WHERE material_Id = ?", material_Id, (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
-    }
-  });
-});
-
-//cart
-// กำหนด endpoint สำหรับเพิ่มสินค้าในตะกร้า
-app.post("/cart", (req, res) => {
-  const { material_Id, order_material_quantity } = req.body;
-  const sql = `INSERT INTO order_material (material_Id, order_material_quantity) VALUES (${material_Id}, ${order_material_quantity})`;
-  db.query(sql, (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
-    }
-  });
-});
-
-// กำหนด endpoint สำหรับดึงข้อมูลสินค้าในตะกร้า
-app.get('/cart', (req, res) => {
-  const sql = 'SELECT order_material.order_material_Id, material.material_name, order_material.order_material_quantity FROM order_material_Id INNER JOIN material ON order_material_Id.material_Id = material.material_Id';
-  db.query(sql, (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
-    }
-  });
-});
-
-
-//durablearticles
-app.get("/durablearticles", (req, res) => {
-  db.query("SELECT * FROM durablearticles", (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
-    }
-  });
-});
-
-app.post('/createdurablearticles', (req, res) => {
-  const durablearticles_Id = req.body.durablearticles_Id;
-  const durablearticles_name = req.body.durablearticles_name;
-  const durablearticles_brand = req.body.durablearticles_brand;
-  const durablearticles_unit = req.body.durablearticles_unit;
-  const durablearticles_price = req.body.durablearticles_price;
-  const durablearticles_order_date = req.body.durablearticles_order_date;
-  const durablearticles_delivery_date = req.body.durablearticles_delivery_date;
-  const durablearticles_repair_date = req.body.durablearticles_repair_date;
-  const durablearticles_finish_date = req.body.durablearticles_finish_date;
-  const type_durablearticles_Id = req.body.type_durablearticles_Id;
-  const company_Id = req.body.company_Id;
-  const room_Id = req.body.room_Id;
-  db.query(
-    "INSERT INTO durablearticles (durablearticles_Id, durablearticles_name, durablearticles_brand, durablearticles_unit, durablearticles_price, durablearticles_order_date, durablearticles_delivery_date, durablearticles_repair_date, durablearticles_finish_date, type_durablearticles_Id, company_Id, room_Id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
-    [durablearticles_Id, durablearticles_name, durablearticles_brand, durablearticles_unit, durablearticles_price, durablearticles_order_date, durablearticles_delivery_date, durablearticles_repair_date, durablearticles_finish_date, type_durablearticles_Id, company_Id, room_Id],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send("Values inserted");
-      }
-    });
-});
-
-app.put('/updatedurablearticles/:durablearticles_Id', (req, res) => {
-  const durablearticles_Id = req.body.durablearticles_Id;
-  const durablearticles_name = req.body.durablearticles_name;
-  const durablearticles_brand = req.body.durablearticles_brand;
-  const durablearticles_unit = req.body.durablearticles_unit;
-  const durablearticles_price = req.body.durablearticles_price;
-  const durablearticles_order_date = req.body.durablearticles_order_date;
-  const durablearticles_delivery_date = req.body.durablearticles_delivery_date;
-  const durablearticles_repair_date = req.body.durablearticles_repair_date;
-  const durablearticles_finish_date = req.body.durablearticles_finish_date;
-  const type_durablearticles_Id = req.body.type_durablearticles_Id;
-  const company_Id = req.body.company_Id;
-  const room_Id = req.body.room_Id;
-  db.query(
-    "UPDATE durablearticles SET durablearticles_name = ?, durablearticles_brand = ?, durablearticles_unit = ?, durablearticles_price = ?, durablearticles_order_date = ?, durablearticles_delivery_date = ?, durablearticles_repair_date = ?, durablearticles_finish_date = ?, type_durablearticles_Id = ?, company_Id = ?, room_Id = ? WHERE durablearticles_Id = ?",
-    [durablearticles_name, durablearticles_brand, durablearticles_unit, durablearticles_price, durablearticles_order_date, durablearticles_delivery_date, durablearticles_repair_date, durablearticles_finish_date, type_durablearticles_Id, company_Id, room_Id, durablearticles_Id],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    });
-});
-
-app.delete("/deletedurablearticles/:durablearticles_Id", (req, res) => {
-  const durablearticles_Id = req.params.durablearticles_Id;
-  db.query("DELETE FROM durablearticles WHERE durablearticles_Id = ?", durablearticles_Id, (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
-    }
-  });
-});
-
-app.get("/getdurablearticles/:durablearticles_Id", (req, res) => {
-  const durablearticles_Id = req.params.durablearticles_Id;
-  db.query("SELECT * FROM durablearticles WHERE durablearticles_Id = ?", durablearticles_Id, (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
-    }
-  });
-});
-
-//moveroom
-app.put('/moveroom/:durablearticles_Id', (req, res) => {
-  const durablearticles_Id = req.body.durablearticles_Id;
-  const room_Id = req.body.room_Id;
-  db.query(
-    "UPDATE durablearticles SET room_Id = ? WHERE durablearticles_Id = ?",
-    [room_Id, durablearticles_Id],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    });
-});
-
-
-//รายงานแจ้งซ่อม
-
-app.get("/report", (req, res) => {
-  db.query("SELECT * FROM `repair_durablearticles`", (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
-    }
-  });
-});
-
-//changeroom
-app.put('/changeroom/:durablearticles_Id', (req, res) => {
-  const durablearticles_Id = req.body.durablearticles_Id;
-  const room_Id = req.body.room_Id;
-  db.query(
-    "UPDATE durablearticles SET room_Id = ? WHERE durablearticles_Id = ?",
-    [room_Id, durablearticles_Id],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    });
-});
-
-//repair
-db.connect((err) => {
-  if (err) throw err;
-  console.log('Connected to MySQL database!');
-});
-
-app.post('/repairs', (req, res) => {
-  const localTime = new Date().toLocaleString('en-US', { timeZone: 'Asia/Bangkok' });
-  const { durablearticles_Id, room, repair_detail, Informer } = req.body;
-
-  const repair_status = "รอดำเนินการ";
-  const repair_durablearticles_date = localTime;
-  const sql = "INSERT INTO repair_durablearticles (durablearticles_Id, room, repair_detail, Informer, repair_status, repair_durablearticles_date) VALUES (?, ?, ?, ?, ?, ?)";
-  const values = [durablearticles_Id, room, repair_detail, Informer, repair_status, repair_durablearticles_date];
-  db.query(sql, values, (err, result) => {
-    if (err) throw err;
-    console.log("New repair record inserted!");
-    res.sendStatus(200);
-  });
-});
-
-
-
-
-app.post('/login', (req, res) => {
-
-  const { username, password } = req.body;
- 
-
-  fetch('https://api.account.kmutnb.ac.th/api/account-api/user-authen', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization':`Bearer ${token}`
-    },
-    body: JSON.stringify({
-      scopes: scopes,
-      username: username,
-      password: password,
-    }),
-  })
-    .then(response => response.json())
-    .then(json_data => {
-      if (!json_data.hasOwnProperty('api_status')) {
-        res.status(500).json({ message: 'API Error' });
-      } else if (json_data['api_status'] === 'success') {
-        res.json({ userInfo: json_data['userInfo'] });
-      } else if (json_data['api_status'] === 'fail') {
-        res.status(401).json({ message: json_data['api_message'] });
-      } else {
-        res.status(500).json({ message: 'Internal Error' });
-      }
-    })
-    .catch(error => {
-      console.log('Fetch Error: ' + error);
-      res.status(500).json({ message: 'Fetch Error' });
-    });
+  const takePhoto = () => {
+    const canvas = document.createElement('canvas');
+    const video = videoRef.current;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    const photo = canvas.toDataURL('image/png');
+    const img = document.createElement('img');
+    img.src = photo;
+    document.body.appendChild(img); // แสดง element img บนหน้าเว็บ
+  };
   
-});
+  useEffect(() => {
+    const getMaterial = async () => {
+      const response = await axios.get('http://localhost:3001/durablearticles');
+      const jsonData = response.data;
+      setMaterial(jsonData);
+      const foundData = jsonData.find(data => data.durablearticles_Id === durablearticles_Id);
+      if (foundData) {
+        setDurablearticlesName(foundData.durablearticles_name);
+        setTypeDurablearticlesId(foundData.type_durablearticles_Id);
+      }
+    };
+    getMaterial();
+  }, [durablearticles_Id]);
 
+  
+  
+  const submitRepair = async () => {
+    if (!Informer) {
+      alert('Please fill in the informer field.');
+      return;
+    }
 
+    const data = {
+      repair_durablearticles_Id,
+      du_name,
+      durablearticles_Id,
+      room,
+      description,
+      Informer,
+      repair_detail: description, 
+      Informer: Informer, 
+    }
+    console.log(description)
+    try {
+      const response = await axios.post('http://localhost:3001/repairs', data);
+      console.log(response.data);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    submitRepair();
+  }
+  
+  const handleInputChange =(event) => {
+    event.preventDefault();
+    const { name, value } = event.target;
+    if (name === 'room') {
+      setRoom(value);
+    } else if (name === 'description') {
+      setDescription(value);
+    } else if (name === 'Informer') {
+      setInformer(value);
+    }
+  }
 
-
-app.listen(3001, () => {
-  console.log("Yey, your server is running on port 3001");
-});
+  return(
+    <div>
+      <h2>แจ้งซ่อมครุภัณฑ์</h2>
+      <form onSubmit={handleSubmit}>
+          <label>ID:{durablearticles_Id}  </label><br /><br />
+          <label>ชื่อ:{du_name} </label><br /><br />
+          <label>ประเภท:{typeId} </label><br /><br />
+          <label>ห้อง:</label>
+          <select name="room" value={room} onChange={handleInputChange}>
+            <option value="select">select</option>
+            <option value="78-601">78-601</option>
+          </select><br /><br />
+          <div>
+  {stream ? (
+    <div>
+      <video ref={videoRef} autoPlay playsInline />
+      <button onClick={stopCamera}>Stop Camera</button>
+      <button onClick={takePhoto}>Take Photo</button>
+    </div>
+  ) : (
+    <button onClick={startCamera}>Start Camera</button>
+  )}
+</div>
+          <label>รายละเอียดเพิ่มเติม:</label>
+          <input type="text" onChange={handleInputChange} value={description} name="description" />
+          <br /><br />
+          <label>ผู้แจ้ง:</label>
+          <input type="text" onChange={handleInputChange} value={Informer} name="Informer" /><br />
+          <br /><br />
+          <button type="submit" className="submit" onClick={handleSubmit}>Submit</button>
+      </form>
+    </div>
+  )
+}
