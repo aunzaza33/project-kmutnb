@@ -1,5 +1,6 @@
 import React,{ useState, useEffect, useRef } from "react";
 import axios from 'axios';
+import Webcam from 'react-webcam';
 
 export default function Repair(){
   const [material, setMaterial] = useState([]);
@@ -10,6 +11,7 @@ export default function Repair(){
   const [Informer, setInformer] = useState('');
   const [du_name, setDurablearticlesName] = useState('');
   const [typeId, setTypeDurablearticlesId] = useState('');
+  const [image, setImage] = useState(null);
   const repair_durablearticles_Id=" ";
   useEffect(() => {
     const getMaterial = async () => {
@@ -24,6 +26,13 @@ export default function Repair(){
     };
     getMaterial();
   }, [durablearticles_Id]);
+
+  const webcamRef = useRef(null);
+
+const capture = React.useCallback(() => {
+const imageSrc = webcamRef.current.getScreenshot();
+setImage(imageSrc);
+}, [webcamRef, setImage]);
   
   const submitRepair = async () => {
     if (!Informer) {
@@ -79,6 +88,16 @@ export default function Repair(){
             <option value="select">select</option>
             <option value="78-601">78-601</option>
           </select><br /><br />
+
+          {image ? (
+          <img src={image} alt="capture" />
+             ) : (
+          <>
+          <Webcam audio={false} ref={webcamRef} screenshotFormat="image/jpeg" width={210} height={120} />
+          <button onClick={capture}>ถ่ายรูป</button>
+          </>
+          )}
+          <br /><br />
           <label>รายละเอียดเพิ่มเติม:</label>
           <input type="text" onChange={handleInputChange} value={description} name="description" />
           <br /><br />
