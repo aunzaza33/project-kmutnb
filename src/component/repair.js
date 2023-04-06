@@ -36,6 +36,17 @@ const imageSrc = webcamRef.current.getScreenshot();
 setImage(imageSrc);
 }, [webcamRef, setImage]);
   
+// ฟังก์ชันสำหรับสลับกล้อง
+const toggleFacingMode = () => {
+  setFacingMode(prevFacingMode => {
+    if (prevFacingMode === "user") {
+      return "environment";
+    } else {
+      return "user";
+    }
+  });
+}
+
   const submitRepair = async () => {
     if (!Informer) {
       alert('Please fill in the informer field.');
@@ -77,16 +88,7 @@ setImage(imageSrc);
       setInformer(value);
     }
   }
-// ฟังก์ชันสำหรับสลับกล้อง
-const toggleFacingMode = () => {
-  setFacingMode(prevFacingMode => {
-    if (prevFacingMode === "user") {
-      return "environment";
-    } else {
-      return "user";
-    }
-  });
-};
+;
   return(
     <div>
       <h2>แจ้งซ่อมครุภัณฑ์</h2>
