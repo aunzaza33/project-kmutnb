@@ -11,8 +11,6 @@ export default function Repair(){
   const [du_name, setDurablearticlesName] = useState('');
   const [typeId, setTypeDurablearticlesId] = useState('');
   const repair_durablearticles_Id=" ";
-  const videoRef = useRef();
-  const [pictureUrl, setPictureUrl] = useState('');
   useEffect(() => {
     const getMaterial = async () => {
       const response = await axios.get('http://localhost:3001/durablearticles');
@@ -68,25 +66,39 @@ export default function Repair(){
       setInformer(value);
     }
   }
-  const handleTakePicture = async () => {
-    const constraints = { audio: false, video: { facingMode: { exact: "environment" } } }; // ใช้กล้องหลังด้าน
-    const stream = await navigator.mediaDevices.getUserMedia(constraints);
-    videoRef.current.srcObject = stream;
+  const videoRef = useRef(null);
+  const [stream, setStream] = useState(null);
   
-    const canvas = document.createElement('canvas');
-    canvas.width = videoRef.current.videoWidth;
-    canvas.height = videoRef.current.videoHeight;
-    canvas.getContext('2d').drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-    const dataURL = canvas.toDataURL('image/png');
-    setPictureUrl(dataURL);
-    
-    stream.getTracks().forEach(track => {
-      track.stop(); // หยุดการใช้งานกล้องเมื่อเสร็จสิ้น
-    });
+  const handleStream = (stream) => {
+    setStream(stream);
+    if (videoRef.current) {
+      videoRef.current.srcObject = stream;
+    }
   }
   
+  const handleCameraError = (error) => {
+    console.error('Unable to access camera: ', error);
+  }
   
-
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      handleStream(stream);
+    } catch (error) {
+      handleCameraError(error);
+    }
+  }
+  
+  useEffect(() => {
+    startCamera();
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach((track) => {
+          track.stop();
+        });
+      }
+    }
+  }, []);
   return(
     <div>
       <h2>แจ้งซ่อมครุภัณฑ์</h2>
@@ -99,18 +111,18 @@ export default function Repair(){
             <option value="select">select</option>
             <option value="78-601">78-601</option>
           </select><br /><br />
+          {stream && (
+        <div>
+          <video ref={videoRef} autoPlay />
+        </div>
+      )}
           <label>รายละเอียดเพิ่มเติม:</label>
           <input type="text" onChange={handleInputChange} value={description} name="description" />
           <br /><br />
           <label>ผู้แจ้ง:</label>
           <input type="text" onChange={handleInputChange} value={Informer} name="Informer" /><br />
           <br /><br />
-          <button type="button" className="take-picture" onClick={handleTakePicture}>Take Picture</button>
-          <video ref={videoRef} ></video>
-{pictureUrl && <img src={pictureUrl} alt="Taken Picture" />}
-
-<button type="submit" className="submit" onClick={handleSubmit}>Submit</button>
-
+          <button type="submit" className="submit" onClick={handleSubmit}>Submit</button>
       </form>
     </div>
   )
