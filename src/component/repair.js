@@ -1,6 +1,5 @@
 import React,{ useState, useEffect, useRef } from "react";
 import axios from 'axios';
-import Webcam from 'react-webcam';
 
 export default function Repair(){
   const [material, setMaterial] = useState([]);
@@ -11,11 +10,7 @@ export default function Repair(){
   const [Informer, setInformer] = useState('');
   const [du_name, setDurablearticlesName] = useState('');
   const [typeId, setTypeDurablearticlesId] = useState('');
-  const [image, setImage] = useState(null);
   const repair_durablearticles_Id=" ";
-  const [facingMode, setFacingMode] = useState("environment");
-  const [stream, setStream] = useState(null);
-
   useEffect(() => {
     const getMaterial = async () => {
       const response = await axios.get('http://localhost:3001/durablearticles');
@@ -26,67 +21,10 @@ export default function Repair(){
         setDurablearticlesName(foundData.durablearticles_name);
         setTypeDurablearticlesId(foundData.type_durablearticles_Id);
       }
-
     };
     getMaterial();
   }, [durablearticles_Id]);
-  useEffect(() => {
-    startCamera();
   
-    return () => {
-      if (stream) {
-        stream.getTracks().forEach((track) => {
-          track.stop();
-        });
-      }
-    };
-  }, [facingMode]);
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "hidden") {
-        setStream(null);
-      } else {
-        startCamera();
-      }
-    };
-  
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-  
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [startCamera]);
-  const startCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } });
-      setStream(stream);
-      webcamRef.current.srcObject = stream;
-    } catch (err) {
-      console.error(err);
-    }
-  };
-  const webcamRef = useRef(null);
-// ฟังก์ชันสำหรับสลับกล้อง
-const toggleFacingMode = () => {
-  setFacingMode(prevFacingMode => {
-    if (prevFacingMode === "user") {
-      return "environment";
-    } else {
-      return "user";
-    }
-  });
-}
-const capture = () => {
-  const canvas = document.createElement("canvas");
-  canvas.width = webcamRef.current.videoWidth;
-  canvas.height = webcamRef.current.videoHeight;
-  canvas.getContext("2d").drawImage(webcamRef.current, 0, 0, canvas.width, canvas.height);
-  const imageSrc = canvas.toDataURL("image/jpeg");
-  setImage(imageSrc);
-};
-  
-
-
   const submitRepair = async () => {
     if (!Informer) {
       alert('Please fill in the informer field.');
@@ -128,7 +66,7 @@ const capture = () => {
       setInformer(value);
     }
   }
-;
+
   return(
     <div>
       <h2>แจ้งซ่อมครุภัณฑ์</h2>
@@ -141,17 +79,8 @@ const capture = () => {
             <option value="select">select</option>
             <option value="78-601">78-601</option>
           </select><br /><br />
-
-          {image ? (
-          <img src={image} alt="capture" />
-             ) : (
-          <>
-            <video ref={webcamRef} autoPlay playsInline width={210} height={120} />
-        <button onClick={capture}>ถ่ายรูป</button>
-        <button onClick={toggleFacingMode}>สลับกล้อง</button>
-          </>
-          )}
-        
+          <input type="file" accept="image/*" capture="camera" />
+          <br></br>
           <label>รายละเอียดเพิ่มเติม:</label>
           <input type="text" onChange={handleInputChange} value={description} name="description" />
           <br /><br />
