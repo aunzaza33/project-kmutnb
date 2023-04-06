@@ -69,21 +69,17 @@ export default function Repair(){
     }
   }
   const handleTakePicture = async () => {
-    const constraints = { audio: false, video: true };
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      videoRef.current.srcObject = stream;
-      videoRef.current.play();
-      const canvas = document.createElement("canvas");
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-      const dataURL = canvas.toDataURL("image/png");
-      setPictureUrl(dataURL);
-    } catch (err) {
-      console.log("Error: " + err);
-    }
+    const constraints = { audio: false, video: { facingMode: { exact: "environment" } } }; // เพิ่ม constraints เพื่อให้ใช้กล้องหลัง
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    videoRef.current.srcObject = stream;
+  
+    const canvas = document.createElement('canvas');
+    canvas.width = videoRef.current.videoWidth;
+    canvas.height = videoRef.current.videoHeight;
+    canvas.getContext('2d').drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+    const dataURL = canvas.toDataURL('image/png');
+    setPictureUrl(dataURL);
+    stream.getTracks().forEach(track => track.stop()); // เพิ่มการปิดกล้องหลังเมื่อถ่ายรูปเสร็จสิ้น
   };
 
   return(
@@ -106,15 +102,12 @@ export default function Repair(){
           <br /><br />
           <button type="button" className="take-picture" onClick={handleTakePicture}>Take Picture</button>
 <video ref={videoRef} autoPlay muted style={{ display: "" }}></video>
-{pictureUrl ? (
+{pictureUrl && (
   <img
     src={pictureUrl}
     alt="Taken Picture"
     style={{ maxWidth: "100%", marginTop: "10px" }}
   />
-) : (
-  <p>No picture taken</p>
-)}
 )}
 <button type="submit" className="submit" onClick={handleSubmit}>Submit</button>
 
