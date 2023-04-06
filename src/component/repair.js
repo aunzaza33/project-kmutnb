@@ -14,6 +14,7 @@ export default function Repair(){
   const [image, setImage] = useState(null);
   const repair_durablearticles_Id=" ";
   const [facingMode, setFacingMode] = useState("environment");
+  const [stream, setStream] = useState(null);
 
   useEffect(() => {
     const getMaterial = async () => {
@@ -25,10 +26,45 @@ export default function Repair(){
         setDurablearticlesName(foundData.durablearticles_name);
         setTypeDurablearticlesId(foundData.type_durablearticles_Id);
       }
+
     };
     getMaterial();
   }, [durablearticles_Id]);
-
+  useEffect(() => {
+    startCamera();
+  
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach((track) => {
+          track.stop();
+        });
+      }
+    };
+  }, [facingMode]);
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        setStream(null);
+      } else {
+        startCamera();
+      }
+    };
+  
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+  
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [startCamera]);
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } });
+      setStream(stream);
+      webcamRef.current.srcObject = stream;
+    } catch (err) {
+      console.error(err);
+    }
+  };
   const webcamRef = useRef(null);
 // ฟังก์ชันสำหรับสลับกล้อง
 const toggleFacingMode = () => {
@@ -40,15 +76,22 @@ const toggleFacingMode = () => {
     }
   });
 }
-const capture = React.useCallback(() => {
-const imageSrc = webcamRef.current.getScreenshot();
-setImage(imageSrc);
-}, [webcamRef, setImage]);
+const capture = () => {
+  const canvas = document.createElement("canvas");
+  canvas.width = webcamRef.current.videoWidth;
+  canvas.height = webcamRef.current.videoHeight;
+  canvas.getContext("2d").drawImage(webcamRef.current, 0, 0, canvas.width, canvas.height);
+  const imageSrc = canvas.toDataURL("image/jpeg");
+  setImage(imageSrc);
+};
   
 
 
   const submitRepair = async () => {
-  
+    if (!Informer) {
+      alert('Please fill in the informer field.');
+      return;
+    }
 
     const data = {
       repair_durablearticles_Id,
@@ -103,8 +146,8 @@ setImage(imageSrc);
           <img src={image} alt="capture" />
              ) : (
           <>
-            <Webcam audio={false} ref={webcamRef} screenshotFormat="image/jpeg" width={210} height={120} facingMode={facingMode} />
-        <button onClick={toggleFacingMode}>ถ่ายรูป</button>
+            <video ref={webcamRef} autoPlay playsInline width={210} height={120} />
+        <button onClick={capture}>ถ่ายรูป</button>
         <button onClick={toggleFacingMode}>สลับกล้อง</button>
           </>
           )}
