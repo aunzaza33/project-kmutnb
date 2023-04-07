@@ -96,7 +96,10 @@ export default function Repair(){
       {dataUri ? (
         <img src={dataUri} alt="captured" />
       ) : (
-        <Camera onTakePhoto={handleTakePhoto} />
+        <Camera
+          onTakePhoto={handleTakePhoto}
+          idealFacingMode={Camera.FacingMode.ENVIRONMENT}
+        />
       )}
     </div>
           <label>รายละเอียดเพิ่มเติม:</label>
