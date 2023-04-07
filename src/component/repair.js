@@ -99,7 +99,7 @@ export default function Repair(){
         <Camera
           onTakePhoto={handleTakePhoto}
           idealFacingMode = {FACING_MODES.ENVIRONMENT}
-          idealResolution = {{width: 640, height: 480}}
+          idealResolution = {{width: 200, height: 200}}
           imageType = {IMAGE_TYPES.JPG}
 
         
