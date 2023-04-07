@@ -1,5 +1,7 @@
 import React,{ useState, useEffect, useRef } from "react";
 import axios from 'axios';
+import Camera from 'react-html5-camera-photo';
+import 'react-html5-camera-photo/build/css/index.css';
 
 export default function Repair(){
   const [material, setMaterial] = useState([]);
@@ -14,38 +16,11 @@ export default function Repair(){
   const [stream, setStream] = useState(null);
   const videoRef = useRef(null);
 
-  const startCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { exact: 'environment' } },
-        audio: false,
-      });
-      setStream(stream);
-      videoRef.current.srcObject = stream;
-    } catch (err) {
-      console.error('Failed to access camera', err);
-    }
-  };
+  const [dataUri, setDataUri] = useState(null);
 
-  const stopCamera = () => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      setStream(null);
-      videoRef.current.srcObject = null;
-    }
-  };
-
-  const takePhoto = () => {
-    const canvas = document.createElement('canvas');
-    const video = videoRef.current;
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    canvas.getContext('2d').drawImage(video, 0, 0);
-    const photo = canvas.toDataURL('image/png');
-    const img = document.createElement('img');
-    img.src = photo;
-    document.body.appendChild(img); // แสดง element img บนหน้าเว็บ
-  };
+  function handleTakePhoto(uri) {
+    setDataUri(uri);
+  }
   
   useEffect(() => {
     const getMaterial = async () => {
@@ -118,16 +93,12 @@ export default function Repair(){
             <option value="78-601">78-601</option>
           </select><br /><br />
           <div>
-  {stream ? (
-    <div>
-      <video ref={videoRef} autoPlay playsInline />
-      <button onClick={stopCamera}>Stop Camera</button>
-      <button onClick={takePhoto}>Take Photo</button>
+      {dataUri ? (
+        <img src={dataUri} alt="captured" />
+      ) : (
+        <Camera onTakePhoto={handleTakePhoto} />
+      )}
     </div>
-  ) : (
-    <button onClick={startCamera}>Start Camera</button>
-  )}
-</div>
           <label>รายละเอียดเพิ่มเติม:</label>
           <input type="text" onChange={handleInputChange} value={description} name="description" />
           <br /><br />
